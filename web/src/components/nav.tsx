@@ -6,7 +6,6 @@ const EXPERT_LINKS: NavLink[] = [
   { href: "/queue", label: "صف بررسی", icon: "queue" },
   { href: "/matches", label: "تأیید تطبیق‌ها", icon: "matches" },
   { href: "/reports", label: "گزارش‌ها", icon: "reports" },
-  { href: "/help", label: "راهنما", icon: "help" },
 ];
 const ADMIN_LINKS: NavLink[] = [
   { href: "/catalog/imports", label: "ورود کاتالوگ", icon: "imports" },
@@ -14,6 +13,8 @@ const ADMIN_LINKS: NavLink[] = [
   { href: "/sources", label: "منابع", icon: "sources" },
   { href: "/settings", label: "تنظیمات", icon: "settings" },
 ];
+/** Always last in the menu, for every role. */
+const HELP_LINKS: NavLink[] = [{ href: "/help", label: "راهنما", icon: "help" }];
 
 /** Sidebar on wide screens, a top bar on narrow ones. */
 export function Nav({ viewer }: { viewer: Viewer }) {
@@ -34,7 +35,7 @@ export function Nav({ viewer }: { viewer: Viewer }) {
         </div>
       </div>
       <nav aria-label="منوی اصلی" className="md:flex-1" data-tour="nav">
-        <NavLinks expert={EXPERT_LINKS} admin={isAdmin ? ADMIN_LINKS : []} />
+        <NavLinks expert={EXPERT_LINKS} admin={isAdmin ? ADMIN_LINKS : []} help={HELP_LINKS} />
       </nav>
       <div className="flex items-center gap-3 rounded-xl bg-white/6 p-3">
         <span aria-hidden className="grid size-8 place-items-center rounded-full bg-indigo-500/30 text-sm font-semibold uppercase">

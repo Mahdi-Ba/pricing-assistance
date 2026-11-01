@@ -30,6 +30,10 @@ reset: ## Stop the local stack and delete its volumes
 backend-install: ## Install backend dependencies into backend/.venv
 	$(UV) sync --frozen
 
+.PHONY: browsers
+browsers: ## Download the headless Chromium used by rendered-page tests and the browser worker
+	$(UV) run playwright install chromium
+
 .PHONY: backend-lint
 backend-lint: ## Run ruff and import-linter on the backend
 	$(UV) run ruff check src tests alembic
@@ -81,6 +85,12 @@ web-check: ## Lint, type-check and unit-test the web app
 .PHONY: e2e
 e2e: ## Browser end-to-end tests against the local stack (needs `make up`; seeds pricing_e2e)
 	cd $(WEB) && npx playwright test
+
+# --- run ---------------------------------------------------------------------
+
+.PHONY: demo
+demo: ## Run the app on seeded demo data: web http://localhost:3000, API :8000 (needs `make up`)
+	./deploy/scripts/demo.sh
 
 # --- aggregate ---------------------------------------------------------------
 

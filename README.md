@@ -17,13 +17,26 @@ The specification lives in `openspec/changes/add-pricing-assistant-mvp/` (propos
 
 ## Quick start
 
+Prerequisites: Docker with Compose v2, [uv](https://docs.astral.sh/uv/), Node.js 22+ and GNU make.
+
 ```bash
 make help        # list targets
-make up          # start the local stack
+make up          # start the local stack (Postgres, Redis, MinIO, Keycloak)
 make backend-install web-install
+make browsers    # headless Chromium for the rendered-page tests (~100 MB, once per machine)
 make migrate
 make test
 ```
+
+## Run the app
+
+`make test` only checks the code; it does not start the app. To use it in the browser:
+
+```bash
+make demo        # needs `make up`; seeds demo data and starts the API, workers and web app
+```
+
+Then open http://localhost:3000 and sign in with `pilot-admin` (admin) or `pilot-expert` (expert), password `dev-password-1`. Ctrl+C stops everything. The demo never fetches from real websites.
 
 See `docs/local-dev.md` for details and `docs/architecture.md` for the architecture overview.
 

@@ -13,8 +13,10 @@
 make up                         # Postgres, Redis, MinIO, Keycloak; waits until healthy
 make backend-install            # uv sync into backend/.venv
 make web-install                # npm ci in web/
+make browsers                   # headless Chromium for rendered-page tests (once per machine)
 make migrate                    # apply migrations to the development database
 make test                       # lint, type-check, unit and integration tests, web checks
+make demo                       # run the app on demo data: http://localhost:3000 (Ctrl+C stops it)
 ```
 
 `make help` lists all targets. `make reset` deletes the stack's volumes for a clean start.

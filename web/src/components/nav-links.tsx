@@ -53,11 +53,15 @@ function Icon({ name }: { name: NavIcon }) {
   );
 }
 
-function Group({ title, links }: { title: string; links: NavLink[] }) {
+function Group({ title, links }: { title?: string; links: NavLink[] }) {
   const pathname = usePathname();
   return (
     <div className="flex flex-col gap-1">
-      <span className="hidden px-3 pt-4 pb-1 text-[11px] font-semibold tracking-wide text-indigo-300/70 md:block">{title}</span>
+      {title ? (
+        <span className="hidden px-3 pt-4 pb-1 text-[11px] font-semibold tracking-wide text-indigo-300/70 md:block">{title}</span>
+      ) : (
+        <span aria-hidden className="mx-3 mt-3 mb-1 hidden border-t border-white/10 md:block" />
+      )}
       <ul className="flex flex-wrap gap-1 md:flex-col">
         {links.map((l) => {
           const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
@@ -81,11 +85,12 @@ function Group({ title, links }: { title: string; links: NavLink[] }) {
   );
 }
 
-export function NavLinks({ expert, admin }: { expert: NavLink[]; admin: NavLink[] }) {
+export function NavLinks({ expert, admin, help }: { expert: NavLink[]; admin: NavLink[]; help: NavLink[] }) {
   return (
     <div className="flex flex-wrap gap-x-2 md:flex-col">
       <Group title="کار روزانه" links={expert} />
       {admin.length > 0 && <Group title="مدیریت" links={admin} />}
+      <Group links={help} />
     </div>
   );
 }
