@@ -1,0 +1,15 @@
+{
+  "id": "msg_synthetic_extract_ok",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-sonnet-5-5",
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"brand\": \"Samsung\", \"model\": \"990 PRO\", \"capacity\": \"2TB\", \"generation\": \"4\", \"frequency\": null, \"colour_edition\": \"heatsink\", \"warranty_provider\": \"آواژنگ\", \"warranty_months\": 18, \"condition\": \"new\", \"payment\": \"cash\"}"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {"input_tokens": 612, "output_tokens": 74}
+}

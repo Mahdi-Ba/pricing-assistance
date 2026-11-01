@@ -1,0 +1,21 @@
+{{- if ne .Values.topology "collectors" }}
+{{- range $role := list "api" "web" }}
+{{- if (index $.Values.roles $role).enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pa.fullname" $ }}-{{ $role }}
+  labels:
+    {{- include "pa.labels" $ | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "pa.selector" (dict "root" $ "role" $role) | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ if eq $role "api" }}8000{{ else }}3000{{ end }}
+      targetPort: http
+{{- end }}
+{{- end }}
+{{- end }}

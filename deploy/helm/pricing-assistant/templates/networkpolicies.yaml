@@ -1,0 +1,97 @@
+{{- if .Values.networkPolicy.enabled }}
+{{- $eg := .Values.networkPolicy.egress }}
+{{- /* which egress targets each role may reach */ -}}
+{{- $needs := dict
+  "api" (list "postgres" "redis" "s3" "oidc" "otel" "llm")
+  "scheduler" (list "postgres" "redis" "s3" "otel")
+  "workerProcess" (list "postgres" "redis" "otel" "llm")
+  "workerCollect" (list "postgres" "redis" "s3" "otel" "llm" "sources")
+  "workerBrowser" (list "postgres" "redis" "s3" "otel" "sources")
+  "web" (list "oidc" "otel") }}
+# Deny everything for this release's pods unless allowed below.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "pa.fullname" . }}-default-deny
+  labels:
+    {{- include "pa.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes: [Ingress, Egress]
+  egress:
+    - ports:   # DNS (kube-dns 53, OpenShift DNS 5353)
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+        - { protocol: UDP, port: 5353 }
+        - { protocol: TCP, port: 5353 }
+{{- range $role := splitList " " (include "pa.roles" .) }}
+{{- if (index $.Values.roles $role).enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "pa.fullname" $ }}-{{ $role | kebabcase }}
+  labels:
+    {{- include "pa.labels" $ | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "pa.selector" (dict "root" $ "role" $role) | nindent 6 }}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    {{- if eq $role "web" }}
+    - from:
+        - namespaceSelector:
+            {{- toYaml $.Values.networkPolicy.ingressNamespaceSelector | nindent 12 }}
+      ports: [{ protocol: TCP, port: 3000 }]
+    {{- else if eq $role "api" }}
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "pa.selector" (dict "root" $ "role" "web") | nindent 14 }}
+      ports: [{ protocol: TCP, port: 8000 }]
+    {{- end }}
+    {{- if and $.Values.metrics.enabled (or (eq $role "api") (include "pa.hasMetricsPort" $role)) }}
+    - from:   # Prometheus scraping
+        - namespaceSelector:
+            {{- toYaml $.Values.metrics.monitoringNamespaceSelector | nindent 12 }}
+      ports: [{ protocol: TCP, port: {{ if eq $role "api" }}8000{{ else }}{{ $.Values.metrics.port }}{{ end }} }]
+    {{- end }}
+  egress:
+    {{- if eq $role "web" }}
+    - to:
+        - podSelector:
+            matchLabels:
+              {{- include "pa.selector" (dict "root" $ "role" "api") | nindent 14 }}
+      ports: [{ protocol: TCP, port: 8000 }]
+    {{- end }}
+    {{- range $target := index $needs $role }}
+    {{- $rule := index $eg $target }}
+    {{- if eq $target "sources" }}
+    {{- if $rule.cidrs }}
+    # approved source address ranges only (no ranges listed = no source access)
+    - to:
+        {{- range $rule.cidrs }}
+        - ipBlock: { cidr: {{ . }} }
+        {{- end }}
+      ports:
+        {{- range $rule.ports }}
+        - { protocol: TCP, port: {{ . }} }
+        {{- end }}
+    {{- end }}
+    {{- else }}
+    # {{ $target }}{{ if not $rule.cidrs }} (no ranges set: any address on this port; set networkPolicy.egress.{{ $target }}.cidrs){{ end }}
+    - {{- if $rule.cidrs }}
+      to:
+        {{- range $rule.cidrs }}
+        - ipBlock: { cidr: {{ . }} }
+        {{- end }}
+      {{- end }}
+      ports: [{ protocol: TCP, port: {{ $rule.port }} }]
+    {{- end }}
+    {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

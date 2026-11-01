@@ -1,0 +1,39 @@
+# Alert rules from design D13. Load into Prometheus (or a PrometheusRule via the Helm chart).
+groups:
+  - name: pricing-assistant
+    rules:
+      - alert: SourceSuccessRateLow
+        expr: |
+          sum by (source) (rate(pa_fetch_outcomes_total{outcome="success"}[1h]))
+            / sum by (source) (rate(pa_fetch_outcomes_total[1h])) < 0.8
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "Source {{ $labels.source }} success rate below 80% over 1h"
+          runbook: docs/runbooks/source-failure.md
+      - alert: SourceBlocked
+        expr: sum by (source) (increase(pa_fetch_outcomes_total{error_class="blocked"}[15m])) > 0
+        labels: {severity: warning}
+        annotations:
+          summary: "Source {{ $labels.source }} answered with blocking (403/429/challenge)"
+          runbook: docs/runbooks/source-blocked.md
+      - alert: OutboxLagHigh
+        expr: max(pa_outbox_lag_seconds) > 300
+        for: 2m
+        labels: {severity: critical}
+        annotations:
+          summary: "Outbox events wait longer than 5 minutes for dispatch"
+          runbook: docs/runbooks/outbox-lag.md
+      - alert: SchedulerHeartbeatMissing
+        expr: time() - max(pa_scheduler_heartbeat_timestamp_seconds) > 120
+        labels: {severity: critical}
+        annotations:
+          summary: "No scheduler heartbeat for more than 2 minutes"
+          runbook: docs/runbooks/scheduler-down.md
+      - alert: NoSchedulerLeader
+        expr: max(pa_scheduler_is_leader) < 1
+        for: 2m
+        labels: {severity: critical}
+        annotations:
+          summary: "No scheduler instance holds the leader lock"
+          runbook: docs/runbooks/scheduler-down.md

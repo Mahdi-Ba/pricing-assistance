@@ -1,0 +1,49 @@
+{{- if and .Values.route.enabled (ne .Values.topology "collectors") }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "pa.fullname" . }}-web
+  labels:
+    {{- include "pa.labels" . | nindent 4 }}
+spec:
+  {{- with .Values.route.host }}
+  host: {{ . }}
+  {{- end }}
+  to:
+    kind: Service
+    name: {{ include "pa.fullname" . }}-web
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+{{- end }}
+{{- if and .Values.ingress.enabled (ne .Values.topology "collectors") }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "pa.fullname" . }}-web
+  labels:
+    {{- include "pa.labels" . | nindent 4 }}
+spec:
+  {{- with .Values.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with .Values.ingress.tlsSecret }}
+  tls:
+    - hosts: [{{ $.Values.ingress.host | quote }}]
+      secretName: {{ . }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "pa.fullname" . }}-web
+                port:
+                  name: http
+{{- end }}

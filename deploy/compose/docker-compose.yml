@@ -1,0 +1,82 @@
+# Local development stack. Credentials below are development-only defaults;
+# override them in deploy/compose/.env (see .env.example). Never reuse them elsewhere.
+name: pricing-assistant
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: pricing
+      POSTGRES_USER: ${PG_OWNER_USER:-pa_owner}
+      POSTGRES_PASSWORD: ${PG_OWNER_PASSWORD:-pa_owner_dev}
+      PA_APP_PASSWORD: ${PG_APP_PASSWORD:-pa_app_dev}
+      PA_MAINTENANCE_PASSWORD: ${PG_MAINTENANCE_PASSWORD:-pa_maintenance_dev}
+    ports:
+      - "${PG_PORT:-55432}:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./postgres/init.sh:/docker-entrypoint-initdb.d/10-roles.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d pricing"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-56390}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-pa_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-pa_minio_dev_secret}
+    ports:
+      - "${MINIO_PORT:-59000}:9000"
+      - "${MINIO_CONSOLE_PORT:-59001}:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_ADMIN_USER:-kc_admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD:-kc_admin_dev}
+      KC_HEALTH_ENABLED: "true"
+      KC_HOSTNAME: http://localhost:${KEYCLOAK_PORT:-58080}
+    ports:
+      - "${KEYCLOAK_PORT:-58080}:8080"
+    volumes:
+      - ./keycloak/tunoo-realm.json:/opt/keycloak/data/import/tunoo-realm.json:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/9000 &&
+          printf 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          grep -q '"UP"' <&3
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+volumes:
+  pg-data:
+  redis-data:
+  minio-data:

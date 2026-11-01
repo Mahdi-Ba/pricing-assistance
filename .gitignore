@@ -1,0 +1,19 @@
+# OS and editor files
+.DS_Store
+.idea/
+.vscode/
+
+# local secrets (examples are committed)
+.env
+.env.*
+!.env.example
+
+# browser end-to-end test output and saved test-user sessions
+web/tests/e2e/.auth/
+web/test-results/
+web/playwright-report/
+web/.vitest/
+web/.schema-check.d.ts
+
+# local Claude Code settings
+.claude/settings.local.json

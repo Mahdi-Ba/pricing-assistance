@@ -1,0 +1,21 @@
+{{- if and .Values.metrics.enabled .Values.metrics.podMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ include "pa.fullname" . }}
+  labels:
+    {{- include "pa.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+    matchExpressions:   # the web pods serve no /metrics
+      - { key: app.kubernetes.io/component, operator: NotIn, values: [web] }
+  podMetricsEndpoints:
+    - port: metrics      # scheduler and workers
+      path: /metrics
+      interval: {{ .Values.metrics.podMonitor.interval }}
+    - port: http         # API
+      path: /metrics
+      interval: {{ .Values.metrics.podMonitor.interval }}
+{{- end }}

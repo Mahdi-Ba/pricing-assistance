@@ -1,0 +1,3 @@
+sku,product_name,category,brand,model,current_price,purchase_cost,currency,importance,stock_quantity,mpn,capacity,warranty_provider,warranty_months
+E2E-OK-1,Samsung 990 PRO,ssd,Samsung,990 PRO 4TB,"18,900,000","15,500,000",TOMAN,A,4,MZ-V9P4T0BW,4TB,آواژنگ,36
+E2E-BAD-1,Broken row,ssd,Samsung,990 PRO 8TB,"not a price","15,500,000",TOMAN,Z,1,,8TB,آواژنگ,36

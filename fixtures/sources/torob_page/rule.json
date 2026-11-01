@@ -1,0 +1,8 @@
+{
+  "offer_container": ".shop-row",
+  "price": {"selector": ".shop-price"},
+  "stock": {"selector": ".shop-stock", "in_stock": ["موجود"], "out_of_stock": ["ناموجود"]},
+  "seller": {"selector": ".shop-name"},
+  "title": {"selector": "h1.product-name", "scope": "page"},
+  "warranty": {"selector": ".shop-warranty"}
+}

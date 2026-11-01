@@ -1,0 +1,148 @@
+@import "tailwindcss";
+
+/* Light theme only: every component is styled for a light background, so the page must not
+   follow the OS dark setting (that left white panels and unreadable text on a black page). */
+:root {
+  color-scheme: light;
+  --background: #f5f7fb;
+  --foreground: #0f172a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-vazirmatn), Tahoma, sans-serif;
+  /* brand: deep indigo; used for primary actions, active navigation and focus */
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+  --color-brand-900: #1e1b4b;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+  /* tour targets scrolled to the top keep a little room above them */
+  [data-tour] {
+    scroll-margin-top: 1rem;
+  }
+  input[type="radio"],
+  input[type="checkbox"] {
+    accent-color: var(--color-brand-600);
+  }
+}
+
+@layer components {
+  /* layout */
+  .page {
+    @apply flex flex-col gap-6;
+  }
+  .page-header {
+    @apply flex flex-col gap-1;
+  }
+  .page-title {
+    @apply text-2xl font-bold tracking-tight text-slate-900;
+  }
+  .page-subtitle {
+    @apply text-sm text-slate-600;
+  }
+  .section-title {
+    @apply text-base font-semibold text-slate-800;
+  }
+  .card {
+    @apply rounded-xl border border-slate-200 bg-white shadow-sm;
+  }
+  .card-body {
+    @apply p-5;
+  }
+  .muted {
+    @apply text-sm text-slate-600;
+  }
+  .empty {
+    @apply rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-600;
+  }
+
+  /* forms */
+  .field-label {
+    @apply flex flex-col gap-1.5 text-sm font-medium text-slate-700;
+  }
+  .field {
+    @apply rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900 shadow-xs transition outline-none placeholder:text-slate-400 hover:border-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100;
+  }
+  .field-sm {
+    @apply px-2 py-1 text-xs;
+  }
+
+  /* buttons */
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap shadow-xs transition disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+  .btn-primary {
+    @apply bg-brand-600 text-white hover:bg-brand-700;
+  }
+  .btn-secondary {
+    @apply border border-slate-300 bg-white text-slate-700 hover:bg-slate-50;
+  }
+  .btn-success {
+    @apply bg-emerald-600 text-white hover:bg-emerald-700;
+  }
+  .btn-danger {
+    @apply bg-rose-600 text-white hover:bg-rose-700;
+  }
+  .btn-ghost {
+    @apply cursor-pointer rounded-md px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-50;
+  }
+  .link {
+    @apply font-medium text-brand-700 underline-offset-4 hover:underline;
+  }
+
+  /* tables: a bordered, rounded card with a tinted header and row hover */
+  .data-table {
+    @apply w-full border-separate border-spacing-0 overflow-hidden rounded-xl border border-slate-200 bg-white text-sm shadow-sm;
+  }
+  /* on phones a wide table scrolls inside its own box instead of widening the page */
+  @media (width < 48rem) {
+    .data-table {
+      display: block;
+      overflow-x: auto;
+    }
+  }
+  .data-table th {
+    @apply border-b border-slate-200 bg-slate-50 px-4 py-3 text-start text-xs font-semibold text-slate-500;
+  }
+  .data-table td {
+    @apply border-b border-slate-100 px-4 py-3 align-middle text-slate-800;
+  }
+  .data-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+  .data-table tbody tr {
+    @apply transition-colors hover:bg-slate-50/70;
+  }
+  .data-table-compact th,
+  .data-table-compact td {
+    @apply px-3 py-2;
+  }
+
+  /* badges */
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ring-1 ring-inset;
+  }
+  .badge-dot::before {
+    content: "";
+    @apply size-1.5 rounded-full bg-current;
+  }
+}

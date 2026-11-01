@@ -1,0 +1,10 @@
+{
+  "id": "msg_synthetic_truncated",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-haiku-5-5",
+  "content": [{"type": "text", "text": "{\"text\": \"کمترین قیمت"}],
+  "stop_reason": "max_tokens",
+  "stop_sequence": null,
+  "usage": {"input_tokens": 300, "output_tokens": 2048}
+}

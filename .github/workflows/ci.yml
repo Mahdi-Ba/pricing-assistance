@@ -1,0 +1,186 @@
+# CI for the pricing assistant (task 14.4). Every job must pass on pull requests and on main.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: backend (lint, types, imports, tests, migrations)
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: pa_owner
+          POSTGRES_PASSWORD: pa_owner_dev
+          POSTGRES_DB: pricing
+          PA_APP_PASSWORD: pa_app_dev
+          PA_MAINTENANCE_PASSWORD: pa_maintenance_dev
+        ports: ["55432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U pa_owner" --health-interval 5s --health-retries 20
+      redis:
+        image: redis:7
+        ports: ["56390:6379"]
+      minio:
+        image: bitnami/minio:2025
+        env:
+          MINIO_ROOT_USER: pa_minio
+          MINIO_ROOT_PASSWORD: pa_minio_dev_secret
+        ports: ["59000:9000"]
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - name: Create roles and test database
+        working-directory: deploy/compose/postgres
+        env:
+          PGPASSWORD: pa_owner_dev
+          POSTGRES_USER: pa_owner
+          POSTGRES_DB: pricing
+          PA_APP_PASSWORD: pa_app_dev
+          PA_MAINTENANCE_PASSWORD: pa_maintenance_dev
+        run: sed 's/psql /psql -h localhost -p 55432 /' init.sh | sh
+      - run: uv sync --frozen
+      - name: Lint and format
+        run: |
+          uv run ruff check src tests alembic
+          uv run ruff format --check src tests alembic
+      - name: Import contracts
+        run: uv run lint-imports
+      - name: Type check
+        run: uv run mypy
+      - name: Unit, property and contract tests
+        run: uv run pytest -m "not integration"
+      - name: Integration tests (incl. migration up/down/up round trip)
+        run: uv run playwright install --with-deps chromium && uv run pytest -m integration
+
+  web:
+    name: web (lint, types, unit/contract tests)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  openapi-drift:
+    name: OpenAPI and web API types up to date
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: uv --directory backend sync --frozen
+      - run: npm ci
+        working-directory: web
+      - run: make openapi-check
+
+  chart:
+    name: Helm chart (lint, template, kubeconform)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: Install kubeconform
+        run: |
+          curl -sSL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz | tar xz
+          sudo mv kubeconform /usr/local/bin/
+      - name: Lint
+        run: helm lint deploy/helm/pricing-assistant
+      - name: Template and validate (single topology, everything enabled)
+        run: |
+          helm template pa deploy/helm/pricing-assistant \
+            --set route.enabled=true --set autoscaling.enabled=true --set autoscaling.keda.enabled=true \
+            --set secrets.externalSecrets.enabled=true \
+            | kubeconform -strict -summary -ignore-missing-schemas
+      - name: Template and validate (collectors topology)
+        run: |
+          helm template pa-collectors deploy/helm/pricing-assistant \
+            -f deploy/helm/pricing-assistant/values-collectors.example.yaml \
+            | kubeconform -strict -summary -ignore-missing-schemas
+
+  images:
+    name: images (build, SBOM, vulnerability scan)
+    runs-on: ubuntu-24.04
+    needs: [backend, web]
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      matrix:
+        include:
+          - name: pricing-backend
+            context: backend
+            file: backend/Dockerfile
+          - name: pricing-backend-browser
+            context: backend
+            file: backend/Dockerfile.browser
+          - name: pricing-web
+            context: web
+            file: web/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          tags: ${{ matrix.name }}:ci
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Runs as an arbitrary UID with a read-only root filesystem
+        run: |
+          if [ "${{ matrix.name }}" = "pricing-web" ]; then
+            docker run -d --name web --user 1000680000:0 --read-only --tmpfs /tmp --tmpfs /app/.next/cache -p 3000:3000 pricing-web:ci
+            sleep 5 && curl -fsS http://localhost:3000/ > /dev/null && docker rm -f web
+          else
+            docker run --rm --user 1000680000:0 --read-only --tmpfs /tmp ${{ matrix.name }}:ci \
+              python -c "import pricing_assistant.app, pricing_assistant.workers"
+          fi
+      - name: SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ matrix.name }}:ci
+          format: spdx-json
+          output-file: ${{ matrix.name }}.spdx.json
+      - name: Vulnerability scan (fail on critical)
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: ${{ matrix.name }}:ci
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"

@@ -1,0 +1,32 @@
+# Collector workers in their own namespace or cluster (D14 / Q-T1), next to approved sources only.
+# Install with: helm install pricing-collectors deploy/helm/pricing-assistant \
+#   -n pricing-collectors -f deploy/helm/pricing-assistant/values-collectors.example.yaml
+topology: collectors
+migrations:
+  enabled: false
+roles:
+  workerCollect: { enabled: true, replicas: 2 }
+  workerBrowser: { enabled: true, replicas: 1 }
+tls:
+  enabled: true
+  secretName: pricing-collector-tls
+config:
+  PA_ENVIRONMENT: prod
+  PA_LOG_JSON: "true"
+  PA_S3_ENDPOINT_URL: https://s3.core.example.internal
+  PA_S3_BUCKET: pricing-evidence
+  PA_LLM_ENABLED: "false"
+secrets:
+  backend: pricing-collector     # credentials scoped to the collector role (no maintenance URL)
+networkPolicy:
+  enabled: true
+  egress:
+    postgres: { cidrs: ["10.20.0.10/32"], port: 5432 }
+    redis: { cidrs: ["10.20.0.11/32"], port: 6380 }
+    s3: { cidrs: ["10.20.0.12/32"], port: 443 }
+    sources: { cidrs: ["203.0.113.0/24"], ports: [443] }
+openshift:
+  egressFirewall:
+    enabled: true
+    allowDnsNames: ["www.example-shop.ir"]
+    allowCidrs: ["10.20.0.10/32", "10.20.0.11/32", "10.20.0.12/32"]

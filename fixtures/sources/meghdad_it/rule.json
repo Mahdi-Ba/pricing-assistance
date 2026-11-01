@@ -1,0 +1,7 @@
+{
+  "price": {"selector": "#product .buy-box .final-price"},
+  "stock": {"selector": "#product .buy-box .status", "in_stock": ["آماده ارسال", "موجود"], "out_of_stock": ["ناموجود", "تماس بگیرید"]},
+  "fixed_seller": "مقداد آی‌تی",
+  "title": {"selector": "#product h1"},
+  "warranty": {"selector": "#product .specs .warranty"}
+}

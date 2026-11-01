@@ -1,0 +1,171 @@
+[project]
+name = "pricing-assistant"
+version = "0.1.0"
+description = "Tunoo pricing assistant backend: API, workers and scheduler"
+requires-python = ">=3.12,<3.13"
+readme = "README.md"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30",
+    "psycopg[binary]>=3.2",
+    "alembic>=1.14",
+    "dramatiq[redis]>=1.17",
+    "redis>=5.2",
+    "httpx>=0.28",
+    "selectolax>=0.3.26",
+    "extruct>=0.18",
+    "structlog>=24.4",
+    "opentelemetry-api>=1.28",
+    "opentelemetry-sdk>=1.28",
+    "opentelemetry-instrumentation-fastapi>=0.49b0",
+    "prometheus-client>=0.21",
+    "pyjwt[crypto]>=2.10",
+    "python-multipart>=0.0.18",
+    "openpyxl>=3.1",
+    "boto3>=1.35",
+    "uuid-utils>=0.9",
+    "opentelemetry-exporter-otlp-proto-http>=1.28",
+    "defusedxml>=0.7",
+    "playwright>=1.64",
+    "anthropic>=1.0",
+    "httpx2>=2.16",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "hypothesis>=6.118",
+    "mypy>=1.13",
+    "ruff>=0.8",
+    "import-linter>=2.1",
+    "boto3-stubs[s3]>=1.35",
+    "types-openpyxl>=3.1",
+]
+
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pricing_assistant"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "ASYNC", "RUF", "N", "SIM", "PL", "PT", "TRY"]
+ignore = [
+    "PLR0913",  # domain commands legitimately take many parameters
+    "TRY003",   # messages on domain errors are intentional
+    "N818",     # errors are named after HTTP semantics (NotFound, Conflict)
+    "E501",     # line length is enforced by `ruff format`; long Persian messages stay intact
+    "RUF001",   # Persian text contains ambiguous-looking Unicode by design
+    "RUF002",
+    "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "PLR2004", "S105", "S106", "S107", "S311", "PT012"]
+"src/pricing_assistant/*/http.py" = ["PLR0917"]  # FastAPI injects parameters positionally
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+files = ["src", "tests", "alembic"]
+mypy_path = "src"
+plugins = ["pydantic.mypy"]
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = ["dramatiq.*", "extruct.*", "selectolax.*"]
+ignore_missing_imports = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+markers = [
+    "integration: requires the local stack (make up)",
+]
+addopts = "--strict-markers -ra"
+
+[tool.importlinter]
+root_package = "pricing_assistant"
+include_external_packages = false
+
+[[tool.importlinter.contracts]]
+name = "Modules are reached only through their api.py and events.py"
+type = "protected"
+protected_modules = [
+    "pricing_assistant.catalog",
+    "pricing_assistant.sources",
+    "pricing_assistant.collection",
+    "pricing_assistant.matching",
+    "pricing_assistant.pricing",
+    "pricing_assistant.decisions",
+    "pricing_assistant.workspace",
+    "pricing_assistant.llm",
+    "pricing_assistant.iam",
+    "pricing_assistant.audit",
+    "pricing_assistant.reporting",
+]
+# Composition roots wire module internals (routers, actors) together.
+allowed_importers = [
+    "pricing_assistant.app",
+    "pricing_assistant.workers",
+    "pricing_assistant.scheduler",
+    "pricing_assistant.wiring",
+    "pricing_assistant.openapi",
+]
+ignore_imports = [
+    "pricing_assistant.** -> pricing_assistant.*.api",
+    "pricing_assistant.** -> pricing_assistant.*.events",
+]
+unmatched_ignore_imports_alerting = "none"
+broken_contract_guidance = "Import another module only via its api.py or events.py; move shared code to pricing_assistant.core."
+
+[[tool.importlinter.contracts]]
+name = "The shared kernel does not depend on domain modules"
+type = "forbidden"
+source_modules = ["pricing_assistant.core"]
+forbidden_modules = [
+    "pricing_assistant.catalog",
+    "pricing_assistant.sources",
+    "pricing_assistant.collection",
+    "pricing_assistant.matching",
+    "pricing_assistant.pricing",
+    "pricing_assistant.decisions",
+    "pricing_assistant.workspace",
+    "pricing_assistant.llm",
+    "pricing_assistant.iam",
+    "pricing_assistant.audit",
+    "pricing_assistant.reporting",
+]
+
+[[tool.importlinter.contracts]]
+name = "Price calculation never reaches the language model"
+type = "forbidden"
+source_modules = [
+    "pricing_assistant.pricing.engine",
+    "pricing_assistant.pricing.inputs",
+    "pricing_assistant.pricing.service",
+    "pricing_assistant.pricing.explain",
+]
+forbidden_modules = ["pricing_assistant.llm"]
+allow_indirect_imports = true  # matching (which may call the LLM) is imported for its read API only
+
+[tool.ruff.lint.pylint]
+max-returns = 8

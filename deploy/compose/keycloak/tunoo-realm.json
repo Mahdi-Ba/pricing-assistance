@@ -1,0 +1,172 @@
+{
+  "realm": "tunoo",
+  "enabled": true,
+  "displayName": "Tunoo (development)",
+  "sslRequired": "none",
+  "accessTokenLifespan": 300,
+  "bruteForceProtected": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Store manager: sources, rules, catalog, overrides"
+      },
+      {
+        "name": "expert",
+        "description": "Pricing expert: queue, matches, decisions"
+      }
+    ]
+  },
+  "groups": [
+    {
+      "name": "tenant-pilot",
+      "attributes": {
+        "tenant_id": [
+          "0192f0a0-0000-7000-8000-000000000001"
+        ]
+      }
+    },
+    {
+      "name": "tenant-sandbox",
+      "attributes": {
+        "tenant_id": [
+          "0192f0a0-0000-7000-8000-000000000002"
+        ]
+      }
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "pricing-api",
+      "name": "Pricing API (audience only)",
+      "enabled": true,
+      "bearerOnly": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "pricing-web",
+      "name": "Pricing workspace (BFF)",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "pricing-web-dev-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "tenant_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "tenant_id",
+            "claim.name": "tenant_id",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "multivalued": "false",
+            "aggregate.attrs": "false"
+          }
+        },
+        {
+          "name": "roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "pricing-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "pilot-admin",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "pilot-admin@example.test",
+      "firstName": "Pilot Admin",
+      "lastName": "Dev",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "dev-password-1",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "admin"
+      ],
+      "groups": [
+        "/tenant-pilot"
+      ]
+    },
+    {
+      "username": "pilot-expert",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "pilot-expert@example.test",
+      "firstName": "Pilot Expert",
+      "lastName": "Dev",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "dev-password-1",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "expert"
+      ],
+      "groups": [
+        "/tenant-pilot"
+      ]
+    },
+    {
+      "username": "sandbox-expert",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "sandbox-expert@example.test",
+      "firstName": "Sandbox Expert",
+      "lastName": "Dev",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "dev-password-1",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "expert"
+      ],
+      "groups": [
+        "/tenant-sandbox"
+      ]
+    }
+  ]
+}

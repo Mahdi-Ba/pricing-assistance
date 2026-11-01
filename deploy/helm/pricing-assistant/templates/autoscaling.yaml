@@ -1,0 +1,56 @@
+{{- if and .Values.autoscaling.enabled }}
+{{- range $role := splitList " " (include "pa.roles" .) }}
+{{- if and (include "pa.isWorker" $role) (index $.Values.roles $role).enabled }}
+{{- $cfg := index $.Values.roles $role }}
+{{- $scale := index $.Values.autoscaling.roles $role }}
+{{- $name := printf "%s-%s" (include "pa.fullname" $) ($role | kebabcase) }}
+---
+{{- if $.Values.autoscaling.keda.enabled }}
+# Scale on Dramatiq queue depth: each queue is a Redis list named dramatiq:<queue>.
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "pa.labels" $ | nindent 4 }}
+spec:
+  scaleTargetRef:
+    name: {{ $name }}
+  minReplicaCount: {{ $scale.min }}
+  maxReplicaCount: {{ $scale.max }}
+  pollingInterval: {{ $.Values.autoscaling.keda.pollingInterval }}
+  triggers:
+    {{- range $queue := $cfg.queues }}
+    - type: redis
+      metadata:
+        address: {{ $.Values.autoscaling.keda.redisAddress | quote }}
+        listName: {{ printf "dramatiq:%s" $queue | quote }}
+        listLength: {{ $.Values.autoscaling.keda.targetQueueLength | toString | quote }}
+        databaseIndex: {{ $.Values.autoscaling.keda.redisDatabaseIndex | toString | quote }}
+        enableTLS: {{ $.Values.autoscaling.keda.enableTLS | toString | quote }}
+    {{- end }}
+{{- else }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "pa.labels" $ | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ $name }}
+  minReplicas: {{ $scale.min }}
+  maxReplicas: {{ $scale.max }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ $scale.cpuPercent }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

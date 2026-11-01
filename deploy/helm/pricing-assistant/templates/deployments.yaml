@@ -1,0 +1,147 @@
+{{- range $role := splitList " " (include "pa.roles" .) }}
+{{- $cfg := index $.Values.roles $role }}
+{{- if $cfg.enabled }}
+{{- $ctx := dict "root" $ "role" $role }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pa.fullname" $ }}-{{ $role | kebabcase }}
+  labels:
+    {{- include "pa.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $role | kebabcase }}
+spec:
+  {{- if not (and $.Values.autoscaling.enabled (include "pa.isWorker" $role)) }}
+  replicas: {{ $cfg.replicas }}
+  {{- end }}
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      {{- include "pa.selector" $ctx | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "pa.labels" $ | nindent 8 }}
+        {{- include "pa.selector" $ctx | nindent 8 }}
+      annotations:
+        {{- if $.Values.metrics.enabled }}
+        {{- if eq $role "api" }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: /metrics
+        {{- else if include "pa.hasMetricsPort" $role }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: {{ $.Values.metrics.port | toString | quote }}
+        prometheus.io/path: /metrics
+        {{- end }}
+        {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") $ | sha256sum }}
+    spec:
+      serviceAccountName: {{ include "pa.serviceAccount" $ }}
+      automountServiceAccountToken: false
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- include "pa.podSecurity" $ | nindent 6 }}
+      terminationGracePeriodSeconds: {{ if include "pa.isWorker" $role }}120{{ else }}30{{ end }}
+      containers:
+        - name: {{ $role | kebabcase }}
+          {{- include "pa.image" $ctx | nindent 10 }}
+          {{- include "pa.command" $ctx | nindent 10 }}
+          securityContext:
+            {{- toYaml $.Values.containerSecurityContext | nindent 12 }}
+          {{- if eq $role "web" }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "pa.fullname" $ }}-web
+            - secretRef:
+                name: {{ $.Values.secrets.web }}
+          ports:
+            - name: http
+              containerPort: 3000
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          {{- else }}
+          {{- include "pa.backendEnv" $ctx | nindent 10 }}
+          {{- end }}
+          {{- if and $.Values.metrics.enabled (include "pa.hasMetricsPort" $role) }}
+          ports:
+            - name: metrics
+              containerPort: {{ $.Values.metrics.port }}
+          {{- end }}
+          {{- if eq $role "api" }}
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          startupProbe:
+            httpGet: { path: /healthz, port: http }
+            failureThreshold: 30
+            periodSeconds: 2
+          {{- end }}
+          resources:
+            {{- toYaml $cfg.resources | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            {{- if eq $role "web" }}
+            - name: next-cache
+              mountPath: /app/.next/cache
+            {{- end }}
+            {{- if eq $role "workerBrowser" }}
+            - name: dshm
+              mountPath: /dev/shm
+            {{- end }}
+            {{- if and $.Values.tls.enabled (ne $role "web") }}
+            - name: tls
+              mountPath: {{ $.Values.tls.mountPath }}
+              readOnly: true
+            {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
+        {{- if eq $role "web" }}
+        - name: next-cache
+          emptyDir:
+            sizeLimit: 256Mi
+        {{- end }}
+        {{- if eq $role "workerBrowser" }}
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: {{ $cfg.shmSize }}
+        {{- end }}
+        {{- if and $.Values.tls.enabled (ne $role "web") }}
+        - name: tls
+          secret:
+            secretName: {{ $.Values.tls.secretName }}
+            defaultMode: 0440
+        {{- end }}
+      {{- with $.Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+{{- end }}

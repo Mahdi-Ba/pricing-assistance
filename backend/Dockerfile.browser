@@ -1,0 +1,28 @@
+# syntax=docker/dockerfile:1.7
+# Browser worker image: the backend plus a headless Chromium, used only by `worker-browser`
+# for rendered-page sources (design D14). Built on the official Playwright image (Ubuntu),
+# because Playwright's browser dependencies are packaged for Debian/Ubuntu, not UBI.
+ARG PLAYWRIGHT_IMAGE=mcr.microsoft.com/playwright/python:v1.64.1-noble
+
+FROM ${PLAYWRIGHT_IMAGE} AS build
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never UV_PROJECT_ENVIRONMENT=/opt/venv
+RUN pip install --no-cache-dir --break-system-packages "uv==0.11.*"
+WORKDIR /build
+COPY pyproject.toml uv.lock README.md ./
+RUN uv sync --frozen --no-dev --no-install-project --python python3.12
+COPY src ./src
+RUN uv sync --frozen --no-dev --no-editable --python python3.12
+
+FROM ${PLAYWRIGHT_IMAGE} AS runtime
+WORKDIR /app
+COPY --from=build /opt/venv /opt/venv
+RUN chgrp -R 0 /app /opt/venv /ms-playwright && chmod -R g=u,o-w /app /opt/venv /ms-playwright
+ENV PATH=/opt/venv/bin:$PATH \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    HOME=/tmp \
+    TMPDIR=/tmp \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
+    PA_LOG_JSON=true
+USER 1001
+CMD ["dramatiq", "pricing_assistant.workers", "--queues", "browser", "--processes", "1", "--threads", "2"]

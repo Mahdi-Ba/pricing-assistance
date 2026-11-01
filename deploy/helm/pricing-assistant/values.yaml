@@ -1,0 +1,206 @@
+# Default values: one namespace with every role ("single" topology).
+# See values-collectors.example.yaml for collector workers in a separate namespace/cluster (D14).
+
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  backend:
+    repository: registry.example.internal/tunoo/pricing-backend
+    tag: "0.1.0"
+    pullPolicy: IfNotPresent
+  browser:
+    repository: registry.example.internal/tunoo/pricing-backend-browser
+    tag: "0.1.0"
+    pullPolicy: IfNotPresent
+  web:
+    repository: registry.example.internal/tunoo/pricing-web
+    tag: "0.1.0"
+    pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+# "single": every role here. "collectors": only the collect/browser workers (separate namespace or
+# cluster, with their own egress and mTLS to Postgres, Redis and object storage; see `tls`).
+topology: single
+
+# Non-secret backend settings (PA_* environment; see backend core/settings.py).
+config:
+  PA_ENVIRONMENT: prod
+  PA_LOG_JSON: "true"
+  PA_LOG_LEVEL: INFO
+  PA_OIDC_ISSUER: https://sso.example.internal/realms/tunoo
+  PA_OIDC_AUDIENCE: pricing-api
+  PA_S3_ENDPOINT_URL: https://s3.example.internal
+  PA_S3_REGION: us-east-1
+  PA_S3_BUCKET: pricing-evidence
+  PA_LLM_ENABLED: "false"          # stays false until a provider passes compliance review (docs/llm.md)
+  PA_LLM_PROVIDER: "null"
+  PA_OTEL_EXPORTER_OTLP_ENDPOINT: ""
+
+# Non-secret web (BFF) settings. BACKEND_API_URL defaults to the in-cluster API service.
+webConfig:
+  AUTH_KEYCLOAK_ISSUER: https://sso.example.internal/realms/tunoo
+  AUTH_KEYCLOAK_ID: pricing-web
+  AUTH_TRUST_HOST: "true"
+
+# Secrets are never stored in values. Either point at existing Secrets, or let External Secrets
+# Operator create them from the secret store.
+secrets:
+  # backend runtime: PA_DATABASE_APP_URL, PA_DATABASE_MAINTENANCE_URL, PA_REDIS_URL,
+  # PA_S3_ACCESS_KEY, PA_S3_SECRET_KEY, PA_SECRET_ENCRYPTION_KEYS (optional PA_ANTHROPIC_API_KEY)
+  backend: pricing-backend
+  # migrations only (least privilege): PA_DATABASE_OWNER_URL
+  migrations: pricing-migrations
+  # web: AUTH_SECRET, AUTH_KEYCLOAK_SECRET
+  web: pricing-web
+  externalSecrets:
+    enabled: false
+    refreshInterval: 1h
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: tunoo-vault
+    # secret name -> { ENV_KEY: { key: remote/path, property: field } }
+    data:
+      backend: {}
+      migrations: {}
+      web: {}
+
+serviceAccount:
+  create: true
+  name: ""
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+  # leave runAsUser unset on OpenShift (the restricted SCC assigns one); set it on plain Kubernetes
+  # runAsUser: 10001
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+roles:
+  api:
+    enabled: true
+    replicas: 2
+    resources:
+      requests: { cpu: 250m, memory: 384Mi }
+      limits: { cpu: "1", memory: 768Mi }
+  scheduler:
+    enabled: true
+    replicas: 2                   # one leader (Postgres advisory lock), one hot standby
+    resources:
+      requests: { cpu: 100m, memory: 256Mi }
+      limits: { cpu: 500m, memory: 512Mi }
+  workerProcess:
+    enabled: true
+    replicas: 2
+    queues: [process]
+    threads: 4
+    resources:
+      requests: { cpu: 250m, memory: 384Mi }
+      limits: { cpu: "1", memory: 768Mi }
+  workerCollect:
+    enabled: true
+    replicas: 2
+    queues: [collect]
+    threads: 4
+    resources:
+      requests: { cpu: 100m, memory: 256Mi }
+      limits: { cpu: 500m, memory: 512Mi }
+  workerBrowser:
+    enabled: true
+    replicas: 1
+    queues: [browser]
+    threads: 2
+    shmSize: 512Mi
+    resources:
+      requests: { cpu: 500m, memory: 1Gi }
+      limits: { cpu: "2", memory: 2Gi }
+  web:
+    enabled: true
+    replicas: 2
+    resources:
+      requests: { cpu: 100m, memory: 256Mi }
+      limits: { cpu: 500m, memory: 512Mi }
+
+migrations:
+  enabled: true                   # Alembic upgrade as a pre-install/pre-upgrade hook Job
+  backoffLimit: 1
+  activeDeadlineSeconds: 600
+
+# Worker autoscaling. With KEDA, scale on Dramatiq queue depth (Redis list length); otherwise a
+# CPU-based HorizontalPodAutoscaler.
+autoscaling:
+  enabled: false
+  keda:
+    enabled: false
+    redisAddress: redis.example.internal:6379   # host:port of the broker Redis
+    redisDatabaseIndex: 0
+    enableTLS: false
+    pollingInterval: 15
+    targetQueueLength: 50
+  roles:
+    workerProcess: { min: 2, max: 8, cpuPercent: 70 }
+    workerCollect: { min: 2, max: 6, cpuPercent: 70 }
+    workerBrowser: { min: 1, max: 3, cpuPercent: 70 }
+
+route:
+  enabled: false                  # OpenShift Route for the web app (edge TLS)
+  host: ""
+ingress:
+  enabled: false
+  className: ""
+  host: ""
+  tlsSecret: ""
+
+# NetworkPolicies: deny by default, then allow what each role needs. Kubernetes NetworkPolicies
+# match IP ranges, not domain names: list the approved sources' address ranges (or an egress proxy)
+# under sources.cidrs. On OpenShift, egressFirewall below can allow by DNS name per namespace.
+networkPolicy:
+  enabled: true
+  ingressNamespaceSelector:       # where the router/ingress controller runs
+    matchLabels:
+      network.openshift.io/policy-group: ingress
+  egress:
+    postgres: { cidrs: [], port: 5432 }
+    redis: { cidrs: [], port: 6379 }
+    s3: { cidrs: [], port: 443 }
+    oidc: { cidrs: [], port: 443 }
+    otel: { cidrs: [], port: 4317 }
+    llm: { cidrs: [], port: 443 }        # only used when a cleared LLM provider is enabled
+    sources: { cidrs: [], ports: [443, 80] }
+
+openshift:
+  egressFirewall:
+    enabled: false                # namespace-wide; use it in the collector namespace
+    allowDnsNames: []             # approved source domains, e.g. www.example-shop.ir
+    allowCidrs: []                # Postgres, Redis, S3, OTel endpoints
+
+# Prometheus scraping. The API serves /metrics on its HTTP port; the scheduler and workers serve
+# it on metrics.port (PA_METRICS_PORT). Workers run one Dramatiq process per pod for this reason.
+metrics:
+  enabled: true
+  port: 9100
+  # namespace of the Prometheus that scrapes the pods (OpenShift user-workload monitoring default)
+  monitoringNamespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-user-workload-monitoring
+  podMonitor:
+    enabled: false              # needs the monitoring.coreos.com CRDs
+    interval: 30s
+
+# mTLS client material for collectors in a separate namespace/cluster (topology: collectors).
+# The Secret must hold ca.crt, tls.crt and tls.key. PA_REDIS_URL must then be rediss:// with
+# ssl_ca_certs/ssl_certfile/ssl_keyfile pointing at the mount path (see docs/deployment.md).
+tls:
+  enabled: false
+  secretName: pricing-collector-tls
+  mountPath: /etc/pa-tls
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

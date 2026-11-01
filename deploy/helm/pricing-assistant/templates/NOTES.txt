@@ -1,0 +1,14 @@
+Pricing assistant {{ .Chart.AppVersion }} — topology: {{ .Values.topology }}
+
+{{- if ne .Values.topology "collectors" }}
+Web:  service {{ include "pa.fullname" . }}-web:3000 {{ if .Values.route.enabled }}(Route enabled){{ end }}
+API:  service {{ include "pa.fullname" . }}-api:8000 (internal; the web BFF calls it)
+{{- end }}
+
+Required Secrets (not created by this chart unless secrets.externalSecrets.enabled):
+  {{ .Values.secrets.backend }}{{ if ne .Values.topology "collectors" }}, {{ .Values.secrets.migrations }}, {{ .Values.secrets.web }}{{ end }}
+{{- if .Values.networkPolicy.enabled }}
+NetworkPolicies are on. Set networkPolicy.egress.*.cidrs to your Postgres/Redis/S3/OIDC ranges;
+collectors reach only networkPolicy.egress.sources.cidrs (empty = no source access).
+{{- end }}
+The system never writes prices to the store. See docs/deployment.md.

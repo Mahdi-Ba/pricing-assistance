@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "pa.fullname" . }}-backend
+  labels:
+    {{- include "pa.labels" . | nindent 4 }}
+data:
+  {{- range $key, $value := .Values.config }}
+  {{- if ne (toString $value) "" }}
+  {{ $key }}: {{ $value | toString | quote }}
+  {{- end }}
+  {{- end }}
+{{- if ne .Values.topology "collectors" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "pa.fullname" . }}-web
+  labels:
+    {{- include "pa.labels" . | nindent 4 }}
+data:
+  BACKEND_API_URL: {{ printf "http://%s-api:8000" (include "pa.fullname" .) | quote }}
+  {{- range $key, $value := .Values.webConfig }}
+  {{ $key }}: {{ $value | toString | quote }}
+  {{- end }}
+{{- end }}

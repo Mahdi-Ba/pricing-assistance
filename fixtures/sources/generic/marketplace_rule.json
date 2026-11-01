@@ -1,0 +1,9 @@
+{
+  "offer_container": ".seller-row",
+  "price": {"selector": ".price"},
+  "stock": {"selector": ".stock", "in_stock": ["موجود"], "out_of_stock": ["ناموجود", "اتمام موجودی"]},
+  "seller": {"selector": ".seller-name"},
+  "title": {"selector": "h1.product-title", "scope": "page"},
+  "warranty": {"selector": ".warranty"},
+  "payment": {"selector": ".payment"}
+}

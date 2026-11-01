@@ -1,0 +1,9 @@
+{
+  "offer_container": ".seller-card",
+  "price": {"selector": ".price"},
+  "stock": {"selector": ".availability", "in_stock": ["موجود"], "out_of_stock": ["ناموجود", "اتمام"]},
+  "seller": {"selector": ".seller-title"},
+  "title": {"selector": "h1[data-testid=pdp-title]", "scope": "page"},
+  "warranty": {"selector": ".warranty"},
+  "payment": {"selector": ".payment"}
+}

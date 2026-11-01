@@ -1,0 +1,7 @@
+{
+  "price": {"selector": ".product-info .product-price .amount"},
+  "stock": {"selector": ".product-info .product-stock", "in_stock": ["موجود"], "out_of_stock": ["ناموجود"]},
+  "fixed_seller": "لیون کامپیوتر",
+  "title": {"selector": "h1.product-title"},
+  "warranty": {"selector": ".product-info .product-warranty"}
+}
