@@ -1,7 +1,7 @@
 {
-  "realm": "tunoo",
+  "realm": "pricing-assistance",
   "enabled": true,
-  "displayName": "Tunoo (development)",
+  "displayName": "pricing-assistance",
   "sslRequired": "none",
   "accessTokenLifespan": 300,
   "bruteForceProtected": true,

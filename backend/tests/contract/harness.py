@@ -12,7 +12,7 @@ from pricing_assistant.sources.connectors.registry import ConnectorRegistry
 from pricing_assistant.sources.http_fetcher import HttpFetcher
 from tests.support.fixtures import FIXTURES
 
-USER_AGENT = "TunooPricingAssistant/contract-test"
+USER_AGENT = "PricingAssistance/contract-test"
 
 
 def replay_registry(

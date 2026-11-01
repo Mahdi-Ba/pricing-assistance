@@ -96,7 +96,7 @@ def _ctx() -> FetchContext:
     return FetchContext(
         tenant_id=uuid.uuid4(),
         correlation_id="corr-browser-0001",
-        user_agent="TunooPricingAssistant/test",
+        user_agent="PricingAssistance/test",
         timeout_seconds=10,
         extraction_rule=ExtractionRule(version_id=uuid.uuid4(), config=RULE),
         connector_config={"wait_for_selector": ".seller-row .price"},

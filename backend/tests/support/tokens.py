@@ -11,7 +11,7 @@ from jwt.algorithms import RSAAlgorithm
 
 from pricing_assistant.iam.api import JwksCache, TokenValidator
 
-ISSUER = "https://idp.test/realms/tunoo"
+ISSUER = "https://idp.test/realms/pricing-assistance"
 AUDIENCE = "pricing-api"
 KID = "test-key-1"
 

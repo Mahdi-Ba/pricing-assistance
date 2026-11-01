@@ -8,7 +8,7 @@ ENV=(-e PA_ENVIRONMENT=dev
   -e PA_DATABASE_OWNER_URL=postgresql+psycopg://pa_owner:pa_owner_dev@$H:55432/pricing_e2e
   -e PA_DATABASE_MAINTENANCE_URL=postgresql+asyncpg://pa_maintenance:pa_maintenance_dev@$H:55432/pricing_e2e
   -e PA_REDIS_URL=redis://$H:56390/14 -e PA_S3_ENDPOINT_URL=http://$H:59000
-  -e PA_S3_BUCKET=pricing-evidence-e2e -e PA_OIDC_ISSUER=http://$H:58080/realms/tunoo)
+  -e PA_S3_BUCKET=pricing-evidence-e2e -e PA_OIDC_ISSUER=http://$H:58080/realms/pricing-assistance)
 RO=(--user 1000680000:0 --read-only --tmpfs /tmp)
 IMG=${1:-pricing-backend:local}
 echo "== uid, root fs read-only, /tmp writable"

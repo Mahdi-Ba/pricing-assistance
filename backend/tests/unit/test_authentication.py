@@ -84,7 +84,7 @@ async def test_rejected_tokens_return_401_without_data(
     assert response.headers["content-type"] == "application/problem+json"
     assert response.headers["www-authenticate"].startswith("Bearer")
     body = response.json()
-    assert body["type"] == "urn:tunoo:pricing:problem:authentication_required"
+    assert body["type"] == "urn:pricing-assistance:problem:authentication_required"
     assert body["message_fa"]
     assert body["correlation_id"]
     assert "tenant_id" not in body

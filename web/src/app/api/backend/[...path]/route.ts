@@ -19,7 +19,7 @@ const TIMEOUT_MS = 60_000;
 
 function problem(status: number, code: string, messageFa: string): Response {
   return Response.json(
-    { type: `urn:tunoo:pricing:problem:${code}`, title: code, status, message_fa: messageFa },
+    { type: `urn:pricing-assistance:problem:${code}`, title: code, status, message_fa: messageFa },
     { status, headers: { "content-type": "application/problem+json" } },
   );
 }

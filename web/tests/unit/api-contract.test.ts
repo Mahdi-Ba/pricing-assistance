@@ -48,7 +48,7 @@ const routes: Record<string, [number, unknown]> = {
   "/api/v1/queue/summary": [200, [{ key: "open_decisions", title_fa: "تصمیم‌های باز", count: "three" }]],
   "/api/v1/queue/missing": [
     404,
-    { type: "urn:tunoo:pricing:problem:not_found", title: "Not found", status: 404, message_fa: "برای این کالا پیشنهادی وجود ندارد." },
+    { type: "urn:pricing-assistance:problem:not_found", title: "Not found", status: 404, message_fa: "برای این کالا پیشنهادی وجود ندارد." },
   ],
 };
 

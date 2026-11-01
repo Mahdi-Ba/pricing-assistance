@@ -6,15 +6,15 @@ fullnameOverride: ""
 
 image:
   backend:
-    repository: registry.example.internal/tunoo/pricing-backend
+    repository: registry.example.internal/pricing-assistance/pricing-backend
     tag: "0.1.0"
     pullPolicy: IfNotPresent
   browser:
-    repository: registry.example.internal/tunoo/pricing-backend-browser
+    repository: registry.example.internal/pricing-assistance/pricing-backend-browser
     tag: "0.1.0"
     pullPolicy: IfNotPresent
   web:
-    repository: registry.example.internal/tunoo/pricing-web
+    repository: registry.example.internal/pricing-assistance/pricing-web
     tag: "0.1.0"
     pullPolicy: IfNotPresent
 imagePullSecrets: []
@@ -28,7 +28,7 @@ config:
   PA_ENVIRONMENT: prod
   PA_LOG_JSON: "true"
   PA_LOG_LEVEL: INFO
-  PA_OIDC_ISSUER: https://sso.example.internal/realms/tunoo
+  PA_OIDC_ISSUER: https://sso.example.internal/realms/pricing-assistance
   PA_OIDC_AUDIENCE: pricing-api
   PA_S3_ENDPOINT_URL: https://s3.example.internal
   PA_S3_REGION: us-east-1
@@ -39,7 +39,7 @@ config:
 
 # Non-secret web (BFF) settings. BACKEND_API_URL defaults to the in-cluster API service.
 webConfig:
-  AUTH_KEYCLOAK_ISSUER: https://sso.example.internal/realms/tunoo
+  AUTH_KEYCLOAK_ISSUER: https://sso.example.internal/realms/pricing-assistance
   AUTH_KEYCLOAK_ID: pricing-web
   AUTH_TRUST_HOST: "true"
 
@@ -58,7 +58,7 @@ secrets:
     refreshInterval: 1h
     secretStoreRef:
       kind: ClusterSecretStore
-      name: tunoo-vault
+      name: pricing-assistance-vault
     # secret name -> { ENV_KEY: { key: remote/path, property: field } }
     data:
       backend: {}

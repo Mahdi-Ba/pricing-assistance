@@ -16,7 +16,7 @@ from pricing_assistant.core.correlation import get_correlation_id
 from pricing_assistant.core.logging import get_logger
 
 PROBLEM_MEDIA_TYPE = "application/problem+json"
-_TYPE_PREFIX = "urn:tunoo:pricing:problem:"
+_TYPE_PREFIX = "urn:pricing-assistance:problem:"
 _SERVER_ERROR = 500
 
 log = get_logger(__name__)

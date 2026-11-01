@@ -28,7 +28,7 @@ TARGET = OfferTarget(
 CTX = FetchContext(
     tenant_id=uuid.uuid4(),
     correlation_id="corr-test-0001",
-    user_agent="TunooPricingBot/0.1",
+    user_agent="PricingAssistanceBot/0.1",
     timeout_seconds=5,
     secrets={"api_token": "s3cr3t"},
 )

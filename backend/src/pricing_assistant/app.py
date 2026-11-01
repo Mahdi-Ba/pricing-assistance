@@ -92,7 +92,7 @@ def create_app(
                 await app.state.redis.aclose()
 
     app = FastAPI(
-        title="Tunoo Pricing Assistant",
+        title="Pricing Assistance",
         version="0.1.0",
         openapi_url=f"{API_PREFIX}/openapi.json",
         docs_url=None,

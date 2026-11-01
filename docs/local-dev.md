@@ -28,11 +28,11 @@ Ports avoid the defaults so the stack can run beside local Postgres or Redis ins
 | PostgreSQL 16 | 55432 | databases `pricing` (dev) and `pricing_test` (integration tests); roles `pa_owner`, `pa_app`, `pa_maintenance` |
 | Redis 7 | 56390 | Dramatiq broker, rate limits; tests use DB 15 |
 | MinIO | 59000 (API), 59001 (console) | evidence snapshots |
-| Keycloak 26 | 58080 | realm `tunoo` |
+| Keycloak 26 | 58080 | realm `pricing-assistance` |
 
 All credentials in the compose file are development-only defaults.
 
-### Development users (realm `tunoo`)
+### Development users (realm `pricing-assistance`)
 
 | User | Password | Role | Tenant |
 |---|---|---|---|
@@ -43,7 +43,7 @@ All credentials in the compose file are development-only defaults.
 Get an access token for API calls (the password grant is enabled only in this development realm):
 
 ```bash
-curl -s -X POST http://localhost:58080/realms/tunoo/protocol/openid-connect/token \
+curl -s -X POST http://localhost:58080/realms/pricing-assistance/protocol/openid-connect/token \
   -d grant_type=password -d client_id=pricing-web -d client_secret=pricing-web-dev-secret \
   -d username=pilot-expert -d password=dev-password-1 | jq -r .access_token
 ```

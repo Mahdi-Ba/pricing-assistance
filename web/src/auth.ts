@@ -36,7 +36,7 @@ declare module "next-auth/jwt" {
   }
 }
 
-const issuer = process.env.AUTH_KEYCLOAK_ISSUER ?? "http://localhost:58080/realms/tunoo";
+const issuer = process.env.AUTH_KEYCLOAK_ISSUER ?? "http://localhost:58080/realms/pricing-assistance";
 const clientId = process.env.AUTH_KEYCLOAK_ID ?? "pricing-web";
 const clientSecret = process.env.AUTH_KEYCLOAK_SECRET ?? "";
 const REFRESH_MARGIN_SECONDS = 30;

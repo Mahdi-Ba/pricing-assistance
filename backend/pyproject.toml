@@ -1,7 +1,7 @@
 [project]
 name = "pricing-assistant"
 version = "0.1.0"
-description = "Tunoo pricing assistant backend: API, workers and scheduler"
+description = "pricing-assistance backend: API, workers and scheduler"
 requires-python = ">=3.12,<3.13"
 readme = "README.md"
 dependencies = [

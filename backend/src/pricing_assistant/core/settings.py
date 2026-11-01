@@ -62,7 +62,7 @@ class Settings(BaseSettings):
     s3_client_cert: str | None = None
     s3_client_key: str | None = None
 
-    oidc_issuer: str = "http://localhost:58080/realms/tunoo"
+    oidc_issuer: str = "http://localhost:58080/realms/pricing-assistance"
     oidc_audience: str = "pricing-api"
     oidc_jwks_url: str | None = None
     oidc_jwks_cache_seconds: Annotated[int, Field(ge=30)] = 600
@@ -72,7 +72,7 @@ class Settings(BaseSettings):
     catalog_max_uncompressed_bytes: Annotated[int, Field(ge=1024)] = 50 * 1024 * 1024
     catalog_max_rows: Annotated[int, Field(ge=1)] = 20_000
 
-    collector_user_agent: str = "TunooPricingAssistant/0.1 (+https://tunoo.de/pricing-bot)"
+    collector_user_agent: str = "PricingAssistance/0.1 (+https://tunoo.de/pricing-bot)"
     collector_timeout_seconds: Annotated[float, Field(gt=0, le=120)] = 20.0
     browser_channel: str | None = None  # e.g. "chrome" to use an installed Google Chrome
     browser_executable_path: str | None = None

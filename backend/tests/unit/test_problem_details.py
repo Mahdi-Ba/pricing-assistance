@@ -45,7 +45,7 @@ async def test_app_error_maps_to_problem_details() -> None:
     assert response.status_code == 404
     assert response.headers["content-type"] == "application/problem+json"
     assert response.json() == {
-        "type": "urn:tunoo:pricing:problem:not_found",
+        "type": "urn:pricing-assistance:problem:not_found",
         "title": "Not found",
         "status": 404,
         "detail": "Recommendation not found",

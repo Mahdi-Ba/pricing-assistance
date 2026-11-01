@@ -1,1 +1,1 @@
-"""Tunoo pricing assistant backend."""
+"""pricing-assistance backend."""

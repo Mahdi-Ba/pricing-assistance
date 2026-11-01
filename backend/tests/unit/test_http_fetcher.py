@@ -19,7 +19,7 @@ from pricing_assistant.sources.http_fetcher import FetchedPage, HttpFetcher, par
 from pricing_assistant.sources.models import RetrievalMethod
 from tests.support.fixtures import fixture_text
 
-UA = "TunooPricingBot/0.1 (+https://tunoo.de/bot)"
+UA = "PricingAssistanceBot/0.1 (+https://tunoo.de/bot)"
 
 
 def fetcher_for(handler: httpx.MockTransport) -> HttpFetcher:

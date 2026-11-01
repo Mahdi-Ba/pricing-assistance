@@ -37,7 +37,7 @@ export default defineConfig({
           AUTH_SECRET: "e2e-only-auth-secret-0123456789abcdef0123456789",
           AUTH_KEYCLOAK_ID: "pricing-web",
           AUTH_KEYCLOAK_SECRET: "pricing-web-dev-secret",
-          AUTH_KEYCLOAK_ISSUER: "http://localhost:58080/realms/tunoo",
+          AUTH_KEYCLOAK_ISSUER: "http://localhost:58080/realms/pricing-assistance",
           AUTH_TRUST_HOST: "true",
         },
       },

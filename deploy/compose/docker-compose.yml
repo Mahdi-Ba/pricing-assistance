@@ -63,7 +63,7 @@ services:
     ports:
       - "${KEYCLOAK_PORT:-58080}:8080"
     volumes:
-      - ./keycloak/tunoo-realm.json:/opt/keycloak/data/import/tunoo-realm.json:ro
+      - ./keycloak/pricing-assistance-realm.json:/opt/keycloak/data/import/pricing-assistance-realm.json:ro
     healthcheck:
       test:
         - CMD-SHELL

@@ -46,7 +46,7 @@ async def test_expert_calling_admin_endpoint_gets_403_and_is_audited(
     response = await client.put("/api/v1/rules/default", headers=auth("expert"))
 
     assert response.status_code == 403
-    assert response.json()["type"] == "urn:tunoo:pricing:problem:permission_denied"
+    assert response.json()["type"] == "urn:pricing-assistance:problem:permission_denied"
     async with db.tenant_session(TENANT_A) as session:
         events = await list_events(session, action="authorization.denied")
     assert len(events) == 1

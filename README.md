@@ -1,4 +1,4 @@
-# Tunoo Pricing Assistant
+# Pricing Assistance
 
 Decision-support assistant for hardware pricing experts (دستیار کارشناس قیمت‌گذاری سخت‌افزار). It collects competitor prices from cleared sources, matches offers to the store's variants, computes deterministic, floor-safe price recommendations and records the expert's decisions. It never changes prices in the store.
 
