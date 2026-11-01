@@ -4,7 +4,7 @@
 
 Pricing experts at Iranian computer-hardware retailers check competitor prices by hand across Torob, Digikala and specialist online shops. The checks are scattered and slow, nobody records the evidence behind them, and nothing stops a price from going below the profit floor. The product document "دستیار کارشناس قیمت‌گذاری سخت‌افزار" (v1.0, 2026-10-18; source: `pricing-assistant.html`) describes a decision-support assistant. It turns market observations into a prioritized review queue: each item carries evidence, a deterministic recommendation and a recorded decision by the expert. This change builds that assistant for phase A (proof of data access) and phase B (single-store pilot).
 
-The product is a multi-tenant Tunoo SaaS; the pilot runs one store as one tenant (Q-B1).
+The product is a multi-tenant SaaS; the pilot runs one store as one tenant (Q-B1).
 
 ## What Changes
 

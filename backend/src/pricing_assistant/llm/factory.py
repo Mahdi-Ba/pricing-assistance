@@ -2,7 +2,7 @@
 
 The compliance gate is explicit: an external provider is built only when ``llm_enabled`` is set,
 it is the selected ``llm_provider`` and it is listed in ``llm_cleared_providers`` (the record of
-Tunoo's legal, data-location and compliance sign-off). Anything else yields the null adapter.
+the operator's legal, data-location and compliance sign-off). Anything else yields the null adapter.
 """
 
 from collections.abc import Callable

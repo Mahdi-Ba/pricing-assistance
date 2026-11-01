@@ -26,7 +26,7 @@ SOURCE = {
     "quota_per_minute": 30,
 }
 CLEARANCE = {
-    "approver_name": "Store owner + Tunoo legal",
+    "approver_name": "Store owner + legal",
     "approved_on": "2026-10-21",
     "scope": "own shop listing via official Shop API",
     "reference": "TOROB-CONTRACT-17",

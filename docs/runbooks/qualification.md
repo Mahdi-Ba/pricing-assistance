@@ -5,7 +5,7 @@
 **Roles:**
 
 - **Admin (store manager):** runs the qualification and decides.
-- **Tunoo legal contact:** confirms each source's clearance.
+- **Legal contact:** confirms each source's clearance.
 - **Expert:** registers product URLs and reviews matches.
 
 All API paths below are under `/api/v1`; the admin pages under `/sources` do the same through the UI.

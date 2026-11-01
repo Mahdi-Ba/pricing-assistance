@@ -2,7 +2,7 @@
 
 The pricing assistant works completely **without** a language model. The rule-based pipeline plus human confirmation is the baseline. The LLM is an optional helper for five bounded tasks. Its answers are always suggestions that a person approves, and it never takes part in a price calculation.
 
-**Status:** disabled. No provider has passed Tunoo's legal, data-location and compliance review yet (business question Q-T2).
+**Status:** disabled. No provider has passed the operator's legal, data-location and compliance review yet (business question Q-T2).
 
 ## 1. What the model may do
 

@@ -5,8 +5,8 @@
 - The repository is greenfield. It holds only OpenSpec scaffolding and no application code, so every structural decision is made here.
 - The source PRD (`pricing-assistant.html`, v1.0) proposes React/Next.js, Python/FastAPI, PostgreSQL, HTTP+HTML parser, Playwright workers and Redis + a job queue. It says that "one central application plus background workers is enough to start." This design keeps that stack.
 - The PRD's processing flow is: source connector → validation → normalization → product matching → rule calculation → expert queue.
-- The product is a multi-tenant Tunoo SaaS. Scale for phase A/B: one store (one tenant), 100–300 variants, 1–5 users (`admin`, `expert`), and up to four candidate competitor sources (Torob product pages, Digikala product pages, Lion Computer, Meghdad IT), each subject to access clearance, plus our own storefront and our Torob listing. This is small, but the PRD requires each source to have its own connector, so that one site's change does not stop pricing logic or other sources.
-- Tunoo platform standards apply: separate orchestration from business logic, event-driven communication, idempotent operations, auditability, tenant isolation, Kubernetes/OpenShift compatibility, and bounded, validated LLM use.
+- The product is a multi-tenant SaaS. Scale for phase A/B: one store (one tenant), 100–300 variants, 1–5 users (`admin`, `expert`), and up to four candidate competitor sources (Torob product pages, Digikala product pages, Lion Computer, Meghdad IT), each subject to access clearance, plus our own storefront and our Torob listing. This is small, but the PRD requires each source to have its own connector, so that one site's change does not stop pricing logic or other sources.
+- Platform standards apply: separate orchestration from business logic, event-driven communication, idempotent operations, auditability, tenant isolation, Kubernetes/OpenShift compatibility, and bounded, validated LLM use.
 - Requirements live in `specs/`; business questions and their answers (2026-10-25) are in `business-questions.md`.
 
 ## Goals / Non-Goals
@@ -201,7 +201,7 @@ The review-time KPI uses `review_session` open and close calls when the detail v
 - The UI gets evidence through short-lived presigned URLs from the API, after an RLS-checked lookup.
 - Default retention is 90 days for page evidence (enforced by a bucket lifecycle rule) and indefinite for observation rows (Q-D3).
 - An optional per-tenant observation retention period is enforced by a scheduled purge job that runs under a dedicated maintenance DB role (the app role has no DELETE). The job writes a purge log and an audit event with counts; recommendations whose inputs were purged are reported as `inputs_purged` and are no longer replayable.
-- Data location: cost, margin and rule data stay in the deployment's own database. The hosting location (Iran, customer servers or approved Tunoo infrastructure) is decided with Q-T1.
+- Data location: cost, margin and rule data stay in the deployment's own database. The hosting location (Iran, customer servers or approved operator infrastructure) is decided with Q-T1.
 
 ### D13. Observability
 

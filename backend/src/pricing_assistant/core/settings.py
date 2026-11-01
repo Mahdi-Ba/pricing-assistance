@@ -72,7 +72,7 @@ class Settings(BaseSettings):
     catalog_max_uncompressed_bytes: Annotated[int, Field(ge=1024)] = 50 * 1024 * 1024
     catalog_max_rows: Annotated[int, Field(ge=1)] = 20_000
 
-    collector_user_agent: str = "PricingAssistance/0.1 (+https://tunoo.de/pricing-bot)"
+    collector_user_agent: str = "PricingAssistance/0.1"
     collector_timeout_seconds: Annotated[float, Field(gt=0, le=120)] = 20.0
     browser_channel: str | None = None  # e.g. "chrome" to use an installed Google Chrome
     browser_executable_path: str | None = None
@@ -85,7 +85,7 @@ class Settings(BaseSettings):
     idempotency_ttl_hours: Annotated[int, Field(ge=1, le=168)] = 24
 
     # Language-model use (docs/llm.md). Off by default; a provider is used only when enabled,
-    # selected and listed as cleared by Tunoo's legal, data-location and compliance review.
+    # selected and listed as cleared by the operator's legal, data-location and compliance review.
     llm_enabled: bool = False
     llm_provider: Literal["null", "anthropic"] = "null"
     llm_cleared_providers: list[str] = Field(default_factory=list)

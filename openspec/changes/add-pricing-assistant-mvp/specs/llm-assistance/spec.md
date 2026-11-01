@@ -7,7 +7,7 @@ Limits language-model use to bounded assistive tasks: attribute extraction, matc
 ## ADDED Requirements
 
 ### Requirement: LLM disabled until compliance clearance
-Language-model use SHALL be disabled by default. It SHALL be enabled only for a provider that has passed Tunoo's legal, data-location and compliance review. With the model disabled, every capability SHALL work through rule-based processing and human confirmation.
+Language-model use SHALL be disabled by default. It SHALL be enabled only for a provider that has passed the operator's legal, data-location and compliance review. With the model disabled, every capability SHALL work through rule-based processing and human confirmation.
 
 #### Scenario: No provider cleared
 - **WHEN** no provider has been cleared

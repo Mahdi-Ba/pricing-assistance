@@ -1,6 +1,6 @@
 # Clearance revocation
 
-**When:** the source owner, legal or Tunoo management withdraws permission to read a source.
+**When:** the source owner, legal or management withdraws permission to read a source.
 
 1. **Revoke immediately.** This suspends the source and blocks every fetch path (scheduled, re-check, qualification, search). Nothing is sent to the source after this call commits:
    ```bash

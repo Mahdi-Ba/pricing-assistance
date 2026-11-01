@@ -18,10 +18,10 @@ Questions marked **[Blocking]** must be answered before phase A (proof of data a
 ## 1. Product scope and users
 
 ### Q-B1. Who is this product for?
-Is this a one-off build for one hardware retailer, or a Tunoo product that will serve several retailers (multi-tenant SaaS)?
+Is this a one-off build for one hardware retailer, or a product that will serve several retailers (multi-tenant SaaS)?
 - **Default**: A multi-tenant product. The pilot has one retailer (one tenant). Data isolation per tenant is built in from day one.
 - **If different**: Design (simpler if single-customer; billing and onboarding flows if SaaS).
-- **Answer**: محصول را به‌صورت SaaS چندمشتریِ Tunoo طراحی می‌کنیم؛ پایلوت فقط با یک فروشگاه شروع می‌شود. جداسازی داده‌ها، دسترسی‌ها و تنظیمات قیمت‌گذاریِ هر مستأجر از روز اول الزامی است. **وضعیت: تصمیم پیشنهادی برای MVP.**
+- **Answer**: محصول را به‌صورت SaaS چندمشتری طراحی می‌کنیم؛ پایلوت فقط با یک فروشگاه شروع می‌شود. جداسازی داده‌ها، دسترسی‌ها و تنظیمات قیمت‌گذاریِ هر مستأجر از روز اول الزامی است. **وضعیت: تصمیم پیشنهادی برای MVP.**
 
 ### Q-B2. Who are the users, and who confirms uncertain product matches? [Blocking]
 The PRD lists "who is responsible for confirming matches" as an open item. How many pricing experts and admins will use the pilot? Should experts confirm matches themselves, or a separate person (for example a category manager)?
@@ -54,7 +54,7 @@ Should experts receive alerts outside the app (Telegram, SMS, email) for urgent 
 Collecting prices from Digikala and specialist shop pages (path B in the PRD) may conflict with their terms of use. Who checks this and takes responsibility? Is written clearance needed per source before we turn it on?
 - **Default**: The customer confirms permission per source. The source registry records who approved it, when and with what reference. A source cannot be set to `approved` without this record.
 - **If different**: Spec (extra fields and rules in the source registry) or scope (some sources dropped).
-- **Answer**: مسئول دریافت و تأیید مجوز هر منبع، مالک کسب‌وکار/مشتری با همکاری مسئول حقوقی Tunoo است. در رجیستریِ منابع باید نام تأییدکننده، تاریخ، دامنه مجوز، مستند یا ارجاع و محدودیت تعداد درخواست ثبت شود. تا زمان احراز مجوز، جمع‌آوری خودکار آن منبع فعال نمی‌شود؛ ممنوعیت یا مسدودسازی را دور نمی‌زنیم. **نیاز به اقدام پیش از فاز A: تأیید منبع‌به‌منبع.**
+- **Answer**: مسئول دریافت و تأیید مجوز هر منبع، مالک کسب‌وکار/مشتری با همکاری مسئول حقوقی است. در رجیستریِ منابع باید نام تأییدکننده، تاریخ، دامنه مجوز، مستند یا ارجاع و محدودیت تعداد درخواست ثبت شود. تا زمان احراز مجوز، جمع‌آوری خودکار آن منبع فعال نمی‌شود؛ ممنوعیت یا مسدودسازی را دور نمی‌زنیم. **نیاز به اقدام پیش از فاز A: تأیید منبع‌به‌منبع.**
 
 ### Q-S1. Which specialist online shops? [Blocking]
 The PRD says 2–3 specialist shops are still to be chosen. Please list candidates (name and website). Also: for each shop, do we compare against the shop itself, or also against sellers listed inside it?
@@ -132,7 +132,7 @@ Purchase costs and margins are sensitive.
 2. How long must we keep page evidence (HTML or screenshots) and price history?
 - **Default**: (1) Stored only inside the deployment's own database, never sent to external services such as the LLM. (2) Page evidence 90 days, price history indefinitely.
 - **If different**: Design (hosting) or Config (retention).
-- **Answer**: بهای خرید، سود و حاشیه سود فقط در پایگاه داده اختصاصی استقرار نگهداری شود و به مدل زبانی یا سرویس بیرونی ارسال نشود. مکان نهایی استقرار (ایران/سرور مشتری/زیرساخت مجاز Tunoo) پس از بررسی محرمانگی و دسترسی شبکه تصویب شود. شواهد صفحه ۹۰ روز و تاریخچه قیمت دست‌کم در طول پایلوت و پس از آن طبق سیاست نگهداری مشتری باقی بماند؛ پیش‌فرض محصول تاریخچه قیمت نامحدود است، با امکان اعمال محدودیت/حذف دوره‌ای. **نیاز به تأیید: محل داده و دوره نگهداری.**
+- **Answer**: بهای خرید، سود و حاشیه سود فقط در پایگاه داده اختصاصی استقرار نگهداری شود و به مدل زبانی یا سرویس بیرونی ارسال نشود. مکان نهایی استقرار (ایران/سرور مشتری/زیرساخت مجاز بهره‌بردار) پس از بررسی محرمانگی و دسترسی شبکه تصویب شود. شواهد صفحه ۹۰ روز و تاریخچه قیمت دست‌کم در طول پایلوت و پس از آن طبق سیاست نگهداری مشتری باقی بماند؛ پیش‌فرض محصول تاریخچه قیمت نامحدود است، با امکان اعمال محدودیت/حذف دوره‌ای. **نیاز به تأیید: محل داده و دوره نگهداری.**
 
 ### Q-D4. Product identifiers
 Does your catalog include manufacturer part numbers (MPN) or barcodes (EAN/GTIN) for most products?
@@ -230,14 +230,14 @@ How many on-demand re-checks per expert per day are reasonable?
 ## 6. Hosting, AI provider and compliance
 
 ### Q-T1. Hosting location and network [Blocking]
-Many Iranian websites restrict or slow down traffic from outside Iran, and connectivity can be unstable. Where will the system run (Tunoo's EU OpenShift, an Iranian cloud provider, the customer's own servers)? Can the data collectors use servers with Iranian network access?
+Many Iranian websites restrict or slow down traffic from outside Iran, and connectivity can be unstable. Where will the system run (an EU OpenShift platform, an Iranian cloud provider, the customer's own servers)? Can the data collectors use servers with Iranian network access?
 - **Default**: The application runs on Kubernetes/OpenShift. The data-collection workers can be deployed separately where they have reliable access to the target sites. The design allows this split.
 - **If different**: Design (deployment topology).
-- **Answer**: معماری از جداسازی برنامه مرکزی و workerهای جمع‌آوری داده پشتیبانی کند. اگر زیرساخت Kubernetes/OpenShift در Tunoo موجود است، از آن استفاده کنیم؛ اما استقرار worker فقط در مکانی که **دسترسی پایدار و مجاز** به منابع دارد انجام شود، بدون تلاش برای دورزدن محدودیت‌های دسترسی. محل دقیق و مسیر ارتباط امن worker با پایگاه داده باید پس از تست منابع در فاز A تصویب شود. **نیاز به تصمیم فنی/حقوقی: میزبان و شبکه.**
+- **Answer**: معماری از جداسازی برنامه مرکزی و workerهای جمع‌آوری داده پشتیبانی کند. اگر زیرساخت Kubernetes/OpenShift موجود است، از آن استفاده کنیم؛ اما استقرار worker فقط در مکانی که **دسترسی پایدار و مجاز** به منابع دارد انجام شود، بدون تلاش برای دورزدن محدودیت‌های دسترسی. محل دقیق و مسیر ارتباط امن worker با پایگاه داده باید پس از تست منابع در فاز A تصویب شود. **نیاز به تصمیم فنی/حقوقی: میزبان و شبکه.**
 
 ### Q-T2. AI (LLM) provider and compliance [Blocking]
 The design uses an LLM only to read product titles, suggest matches and reword explanations. It never handles prices or costs.
-1. Is using an external LLM provider (default: Anthropic Claude) acceptable for this customer and region, after Tunoo's legal/export-compliance review for an Iranian-market deployment?
+1. Is using an external LLM provider (default: Anthropic Claude) acceptable for this customer and region, after the operator's legal/export-compliance review for an Iranian-market deployment?
 2. If not, is a self-hosted open-weights model acceptable, or should the pilot run with **no LLM** (rules plus human confirmation only)?
 - **Default**: The system works fully without an LLM. The LLM is enabled only after the compliance review clears a provider.
 - **If different**: Design (which adapter ships first).
